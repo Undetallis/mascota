@@ -41,8 +41,6 @@
 
     #fraseBox {
         max-width: 90vw;
-        max-height: 70vh;
-
         color: black;
         background: white;
         border-radius: 25px;
@@ -64,15 +62,8 @@
     }
 
     @keyframes aparecer {
-        0% {
-            opacity: 0;
-            transform: scale(0.65) translateY(25px);
-            filter: blur(5px);
-        }
-        100% {
-            opacity: 1;
-            transform: scale(1);
-        }
+        0% { opacity: 0; transform: scale(0.7); filter: blur(5px); }
+        100% { opacity: 1; transform: scale(1); }
     }
 
     #btnSonido {
@@ -93,11 +84,6 @@
         0% { transform: scale(1); }
         50% { transform: scale(1.08); }
         100% { transform: scale(1); }
-    }
-
-    @media (max-width: 600px) {
-        #fraseBox { font-size: 12vw; padding: 20px; }
-        #btnSonido { font-size: 18px; }
     }
 </style>
 
@@ -137,17 +123,28 @@
         if (!sonidoActivo) return;
         const voz = new SpeechSynthesisUtterance(texto);
         voz.lang = "es-ES";
-        voz.pitch = 1;
-        voz.rate = 1;
         speechSynthesis.speak(voz);
     }
 
     async function cargarFrase() {
         const fraseBox = document.getElementById("fraseBox");
-        const refOrden = ref(db, "globalOrder");
+        fraseBox.textContent = "Cargando…";
 
-        const snap = await get(refOrden);
-        let index = snap.exists() ? snap.val() : 0;
+        let index = 0;
+
+        try {
+            const refOrden = ref(db, "globalOrder");
+            const snap = await get(refOrden);
+
+            if (snap.exists()) {
+                index = snap.val();
+            }
+
+            // Guardar siguiente
+            set(refOrden, (index + 1) % frases.length);
+        } catch (e) {
+            console.warn("⚠ No se pudo conectar con Firebase:", e);
+        }
 
         const frase = frases[index];
 
@@ -157,15 +154,13 @@
 
         fraseBox.textContent = frase;
         hablar(frase);
-
-        index = (index + 1) % frases.length;
-        set(refOrden, index);
     }
 
     window.onload = () => {
-        document.getElementById("btnSonido").onclick = () => {
+        const btn = document.getElementById("btnSonido");
+        btn.onclick = () => {
             sonidoActivo = true;
-            document.getElementById("btnSonido").style.display = "none";
+            btn.style.display = "none";
             cargarFrase();
         };
     };
@@ -175,7 +170,6 @@
 <body>
     <div id="fondo"></div>
     <div id="fraseBox">Cargando…</div>
-
     <button id="btnSonido">🔊 Activar sonido</button>
 </body>
 </html>
