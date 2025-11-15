@@ -30,6 +30,7 @@
         box-sizing: border-box;
     }
 
+    /* Fondo animado */
     #fondo {
         position: fixed;
         top: 0;
@@ -50,6 +51,7 @@
         100% { transform: translate(-1px, 2px) scale(1.02); }
     }
 
+    /* Caja del mensaje */
     #fraseBox {
         max-width: 90%;
         padding: 28px 40px;
@@ -60,7 +62,7 @@
         text-align: center;
         border-radius: 20px;
         box-shadow: 0 0 20px rgba(0,0,0,0.3);
-        animation: suaveTexto 1.5s ease-in-out infinite alternate;
+        animation: suaveTexto 1.5s ease-in-out infinite alternate, entrada 0.6s ease-out;
         backdrop-filter: blur(6px);
     }
 
@@ -68,6 +70,11 @@
         0%   { transform: translate(-1px, -1px); }
         50%  { transform: translate(1px, 1px); }
         100% { transform: translate(-1px, 2px); }
+    }
+
+    @keyframes entrada {
+        0% { opacity: 0; transform: scale(0.85); }
+        100% { opacity: 1; transform: scale(1); }
     }
 
     @media (max-width: 600px) {
@@ -78,14 +85,14 @@
     }
 </style>
 
-<!-- ==== FIREBASE ==== -->
+<!-- ==== FIREBASE + SECUENCIA + AUDIO ==== -->
 <script type="module">
 
-    /* Importar Firebase correctamente */
+    /* Importar Firebase */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
     import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
 
-    /* CONFIG NUEVO FIREBASE */
+    /* NUEVA CONFIG FIREBASE */
     const firebaseConfig = {
       apiKey: "AIzaSyBbOpT1ONb8_ZKrlxeUOG2vQpjI86wrKSI",
       authDomain: "undeeellismascota.firebaseapp.com",
@@ -102,18 +109,27 @@
 
     /* ===== FRASES ===== */
     const frases = [
-        "TE AMO",
+      "TE AMO",
       "DAME AMOR",
       "HAZME CARIÑITOS",
       "TENGO HAMBRE",
       "QUIERO SALIR",
       "QUIERO JUGAR",
-      "MIRAMEE",
+      "MÍRAMEE",
       "HOLA",
-        "Quiereme 🥹"
-        // Agrega aquí tus 120 frases completas
+      "QUIÉREME 🥹"
+      // agrega aquí las demás frases
     ];
 
+    /* ===== FUNCIÓN PARA HABLAR ===== */
+    function hablar(texto) {
+        const voz = new SpeechSynthesisUtterance(texto);
+        voz.lang = "es-ES";
+        voz.rate = 1;
+        speechSynthesis.speak(voz);
+    }
+
+    /* ===== CARGAR FRASE EN ORDEN ===== */
     async function cargarFrase() {
         const orderRef = ref(db, "globalOrder");
 
@@ -121,13 +137,19 @@
         let index = snapshot.exists() ? snapshot.val() : 0;
 
         const frase = frases[index];
-        document.getElementById("fraseBox").innerText = frase;
+        const fraseBox = document.getElementById("fraseBox");
+
+        fraseBox.innerText = frase;
+
+        /* LEER FRASE */
+        hablar(frase);
 
         index = (index + 1) % frases.length;
         set(orderRef, index);
     }
 
     window.onload = cargarFrase;
+
 </script>
 
 </head>
