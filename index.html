@@ -5,29 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>UNDETALLIS — Mensajes Secuenciales</title>
 
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-3GFTY2SWSM"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-3GFTY2SWSM');
-</script>
-
 <!-- ==== ESTILOS ==== -->
 <style>
     body {
         margin: 0;
+        padding: 0;
         overflow: hidden;
         height: 100vh;
         width: 100vw;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         background: black;
-        font-family: "Arial", sans-serif;
-        padding: 20px;
-        box-sizing: border-box;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: Arial, sans-serif;
     }
 
     /* Fondo animado */
@@ -35,64 +25,78 @@
         position: fixed;
         top: 0;
         left: 0;
-        height: 110%;
         width: 110%;
-        background-image: url('assets/fondo.jpg');
+        height: 110%;
+        background-image: url("assets/fondo.jpg");
         background-size: cover;
         background-position: center;
-        animation: wiggle 1.5s infinite ease-in-out alternate;
-        filter: blur(2px) brightness(0.8);
+        animation: fondoMovimiento 2s infinite ease-in-out alternate;
+        filter: blur(4px) brightness(0.8);
         z-index: -1;
     }
 
-    @keyframes wiggle {
-        0%   { transform: translate(-2px, -2px) scale(1.015); }
-        50%  { transform: translate(2px, 1px) scale(1.01); }
-        100% { transform: translate(-1px, 2px) scale(1.02); }
+    @keyframes fondoMovimiento {
+        0% { transform: scale(1.02) translate(-5px, -5px); }
+        100% { transform: scale(1.05) translate(5px, 5px); }
     }
 
-    /* Caja del mensaje */
+    /* Caja del texto ajustable */
     #fraseBox {
-        max-width: 90%;
-        padding: 28px 40px;
-        background: white;
+        max-width: 90vw;
+        max-height: 80vh;
+
         color: black;
-        font-size: 30px;
-        font-weight: bold;
+        background: white;
+        border-radius: 25px;
+        padding: 30px;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
         text-align: center;
-        border-radius: 20px;
-        box-shadow: 0 0 20px rgba(0,0,0,0.3);
-        animation: suaveTexto 1.5s ease-in-out infinite alternate, entrada 0.6s ease-out;
+
+        /* AUTO-SCALE del texto */
+        font-size: 10vw;        /* Se ajusta automáticamente */
+        font-weight: bold;
+        line-height: 1.1;
+
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
+        animation: aparecer 0.7s ease-out;
+
         backdrop-filter: blur(6px);
     }
 
-    @keyframes suaveTexto {
-        0%   { transform: translate(-1px, -1px); }
-        50%  { transform: translate(1px, 1px); }
-        100% { transform: translate(-1px, 2px); }
+    @keyframes aparecer {
+        0% {
+            opacity: 0;
+            transform: scale(0.65) translateY(25px);
+            filter: blur(5px);
+        }
+        70% {
+            opacity: 1;
+            transform: scale(1.08) translateY(-5px);
+            filter: blur(0);
+        }
+        100% {
+            transform: scale(1) translateY(0);
+        }
     }
 
-    @keyframes entrada {
-        0% { opacity: 0; transform: scale(0.85); }
-        100% { opacity: 1; transform: scale(1); }
-    }
-
+    /* Ajuste para móviles */
     @media (max-width: 600px) {
         #fraseBox {
-            font-size: 22px;
-            padding: 18px 24px;
+            font-size: 12vw;
+            padding: 20px;
         }
     }
 </style>
 
-<!-- ==== FIREBASE + SECUENCIA + AUDIO ==== -->
+<!-- ==== FIREBASE + LÓGICA ==== -->
 <script type="module">
-
-    /* Importar Firebase */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
     import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
 
-    /* NUEVA CONFIG FIREBASE */
+    /* === FIREBASE CONFIG === */
     const firebaseConfig = {
       apiKey: "AIzaSyBbOpT1ONb8_ZKrlxeUOG2vQpjI86wrKSI",
       authDomain: "undeeellismascota.firebaseapp.com",
@@ -107,54 +111,57 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    /* ===== FRASES ===== */
+    /* === LISTA DE FRASES === */
     const frases = [
-      "TE AMO",
-      "DAME AMOR",
-      "HAZME CARIÑITOS",
-      "TENGO HAMBRE",
-      "QUIERO SALIR",
-      "QUIERO JUGAR",
-      "MÍRAMEE",
-      "HOLA",
-      "QUIÉREME 🥹"
-      // agrega aquí las demás frases
+        "TE AMO",
+        "DAME AMOR",
+        "HAZME CARIÑITOS",
+        "TENGO HAMBRE",
+        "QUIERO SALIR",
+        "QUIERO JUGAR",
+        "MÍRAME",
+        "HOLA",
+        "QUIÉREME 🥹"
     ];
 
-    /* ===== FUNCIÓN PARA HABLAR ===== */
+    /* LECTURA EN VOZ ALTA */
     function hablar(texto) {
         const voz = new SpeechSynthesisUtterance(texto);
         voz.lang = "es-ES";
         voz.rate = 1;
+        voz.pitch = 1.05;
         speechSynthesis.speak(voz);
     }
 
-    /* ===== CARGAR FRASE EN ORDEN ===== */
+    /* CARGAR FRASE */
     async function cargarFrase() {
-        const orderRef = ref(db, "globalOrder");
+        const fraseBox = document.getElementById("fraseBox");
+        const refOrden = ref(db, "globalOrder");
 
-        const snapshot = await get(orderRef);
-        let index = snapshot.exists() ? snapshot.val() : 0;
+        const snap = await get(refOrden);
+        let index = snap.exists() ? snap.val() : 0;
 
         const frase = frases[index];
-        const fraseBox = document.getElementById("fraseBox");
 
-        fraseBox.innerText = frase;
+        // Resetear animación
+        fraseBox.style.animation = "none";
+        void fraseBox.offsetWidth;
+        fraseBox.style.animation = "aparecer 0.7s ease-out";
 
-        /* LEER FRASE */
+        fraseBox.textContent = frase;
+
         hablar(frase);
 
         index = (index + 1) % frases.length;
-        set(orderRef, index);
+        set(refOrden, index);
     }
 
     window.onload = cargarFrase;
-
 </script>
 
 </head>
 <body>
     <div id="fondo"></div>
-    <div id="fraseBox">Cargando...</div>
+    <div id="fraseBox">Cargando…</div>
 </body>
 </html>
