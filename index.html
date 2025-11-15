@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>UNDETALLIS — Mensajes Secuenciales</title>
-    
+
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-3GFTY2SWSM"></script>
 <script>
@@ -30,51 +30,44 @@
         box-sizing: border-box;
     }
 
-    /* Fondo con wiggle */
     #fondo {
         position: fixed;
         top: 0;
         left: 0;
         height: 110%;
         width: 110%;
-        background-image: url('assets/fondo.jpg');
+        background-image: url('assets/fondo2.jpg');
         background-size: cover;
         background-position: center;
-        animation: wiggle 1s infinite ease-in-out alternate;
-        filter: blur(2px);
+        animation: wiggle 1.5s infinite ease-in-out alternate;
+        filter: blur(2px) brightness(0.8);
         z-index: -1;
     }
 
     @keyframes wiggle {
-        0%   { transform: translate(-1.5px, -1.5px) scale(1.015); }
-        25%  { transform: translate(1.5px, -1px) scale(1.01); }
-        50%  { transform: translate(-1px, 1.5px) scale(1.015); }
-        75%  { transform: translate(1px, 1px) scale(1.01); }
-        100% { transform: translate(-1.5px, 1px) scale(1.015); }
-    }
-
-    /* Wiggle suave del texto */
-    @keyframes suaveTexto {
-        0%   { transform: translate(-1px, -1px); }
-        25%  { transform: translate(1px, -0.5px); }
-        50%  { transform: translate(-0.5px, 1px); }
-        75%  { transform: translate(0.5px, 0.5px); }
-        100% { transform: translate(-1px, 0.5px); }
+        0%   { transform: translate(-2px, -2px) scale(1.015); }
+        50%  { transform: translate(2px, 1px) scale(1.01); }
+        100% { transform: translate(-1px, 2px) scale(1.02); }
     }
 
     #fraseBox {
-        max-width: 88%;
-        padding: 25px 35px;
+        max-width: 90%;
+        padding: 28px 40px;
         background: white;
         color: black;
         font-size: 30px;
         font-weight: bold;
         text-align: center;
-        border-radius: 18px;
-        box-shadow: 0 0 20px rgba(0,0,0,0.3), 0 0 40px rgba(0,0,0,0.2);
-        position: relative;
+        border-radius: 20px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        animation: suaveTexto 1.5s ease-in-out infinite alternate;
+        backdrop-filter: blur(6px);
+    }
 
-        animation: suaveTexto 1.6s ease-in-out infinite alternate;
+    @keyframes suaveTexto {
+        0%   { transform: translate(-1px, -1px); }
+        50%  { transform: translate(1px, 1px); }
+        100% { transform: translate(-1px, 2px); }
     }
 
     @media (max-width: 600px) {
@@ -87,58 +80,50 @@
 
 <!-- ==== FIREBASE ==== -->
 <script type="module">
+
+    /* Importar Firebase correctamente */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
     import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
 
+    /* CONFIG NUEVO FIREBASE */
     const firebaseConfig = {
-      apiKey: "AIzaSyCJ8sSO65rTjF04Dl7VMEuhrLj_Z9yAICs",
-      authDomain: "undetallis.firebaseapp.com",
-      databaseURL: "https://undetallis-default-rtdb.firebaseio.com",
-      projectId: "undetallis",
-      storageBucket: "undetallis.firebasestorage.app",
-      messagingSenderId: "60709183880",
-      appId: "1:60709183880:web:c7751f216ca7f5ad381a3d",
-      measurementId: "G-5ZQY4JZBGX"
+      apiKey: "AIzaSyBbOpT1ONb8_ZKrlxeUOG2vQpjI86wrKSI",
+      authDomain: "undeeellismascota.firebaseapp.com",
+      databaseURL: "https://undeeellismascota-default-rtdb.firebaseio.com",
+      projectId: "undeeellismascota",
+      storageBucket: "undeeellismascota.firebasestorage.app",
+      messagingSenderId: "680255793800",
+      appId: "1:680255793800:web:2b5d91a27213f947b10d3d",
+      measurementId: "G-N7JGJ1XKY6"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    /* ===== TUS FRASES ===== */
+    /* ===== FRASES ===== */
     const frases = [
-        "te amo mucho",
-        "Dame cariñitos",
-        "hazme mimos",
-        "Quiero jugar",
-    "Quiero salir",
-        "Eres lo mejor que me ha pasado 😍"
-        /* AQUI AGREGA LAS 120 FRASES RESTANTES */
+        "TE AMO",
+        "Quiereme 🥹"
+        // Agrega aquí tus 120 frases completas
     ];
 
     async function cargarFrase() {
         const orderRef = ref(db, "globalOrder");
 
-        try {
-            const snapshot = await get(orderRef);
-            let index = snapshot.exists() ? snapshot.val() : 0;
+        const snapshot = await get(orderRef);
+        let index = snapshot.exists() ? snapshot.val() : 0;
 
-            if (index >= frases.length) index = 0;
+        const frase = frases[index];
+        document.getElementById("fraseBox").innerText = frase;
 
-            document.getElementById("fraseBox").innerText = frases[index];
-
-            /* Guardar el siguiente índice */
-            set(orderRef, (index + 1) % frases.length);
-
-        } catch (e) {
-            console.error("Error Firebase:", e);
-            document.getElementById("fraseBox").innerText = "Error cargando frase.";
-        }
+        index = (index + 1) % frases.length;
+        set(orderRef, index);
     }
 
     window.onload = cargarFrase;
 </script>
-</head>
 
+</head>
 <body>
     <div id="fondo"></div>
     <div id="fraseBox">Cargando...</div>
