@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>UNDETALLIS — Mensajes Secuenciales</title>
 
-<!-- ==== ESTILOS ==== -->
 <style>
     body {
         margin: 0;
@@ -15,12 +14,12 @@
         width: 100vw;
         background: black;
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
         font-family: Arial, sans-serif;
     }
 
-    /* Fondo animado */
     #fondo {
         position: fixed;
         top: 0;
@@ -40,10 +39,9 @@
         100% { transform: scale(1.05) translate(5px, 5px); }
     }
 
-    /* Caja del texto ajustable */
     #fraseBox {
         max-width: 90vw;
-        max-height: 80vh;
+        max-height: 70vh;
 
         color: black;
         background: white;
@@ -55,8 +53,7 @@
         align-items: center;
         text-align: center;
 
-        /* AUTO-SCALE del texto */
-        font-size: 10vw;        /* Se ajusta automáticamente */
+        font-size: 10vw;
         font-weight: bold;
         line-height: 1.1;
 
@@ -72,31 +69,42 @@
             transform: scale(0.65) translateY(25px);
             filter: blur(5px);
         }
-        70% {
-            opacity: 1;
-            transform: scale(1.08) translateY(-5px);
-            filter: blur(0);
-        }
         100% {
-            transform: scale(1) translateY(0);
+            opacity: 1;
+            transform: scale(1);
         }
     }
 
-    /* Ajuste para móviles */
+    #btnSonido {
+        margin-top: 25px;
+        padding: 12px 25px;
+        background: #ff77dd;
+        color: white;
+        border: none;
+        border-radius: 20px;
+        font-size: 20px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 0 15px rgba(255, 0, 140, 0.5);
+        animation: latir 1.4s infinite ease-in-out;
+    }
+
+    @keyframes latir {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.08); }
+        100% { transform: scale(1); }
+    }
+
     @media (max-width: 600px) {
-        #fraseBox {
-            font-size: 12vw;
-            padding: 20px;
-        }
+        #fraseBox { font-size: 12vw; padding: 20px; }
+        #btnSonido { font-size: 18px; }
     }
 </style>
 
-<!-- ==== FIREBASE + LÓGICA ==== -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
     import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
 
-    /* === FIREBASE CONFIG === */
     const firebaseConfig = {
       apiKey: "AIzaSyBbOpT1ONb8_ZKrlxeUOG2vQpjI86wrKSI",
       authDomain: "undeeellismascota.firebaseapp.com",
@@ -111,7 +119,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    /* === LISTA DE FRASES === */
     const frases = [
         "TE AMO",
         "DAME AMOR",
@@ -124,16 +131,17 @@
         "QUIÉREME 🥹"
     ];
 
-    /* LECTURA EN VOZ ALTA */
+    let sonidoActivo = false;
+
     function hablar(texto) {
+        if (!sonidoActivo) return;
         const voz = new SpeechSynthesisUtterance(texto);
         voz.lang = "es-ES";
+        voz.pitch = 1;
         voz.rate = 1;
-        voz.pitch = 1.05;
         speechSynthesis.speak(voz);
     }
 
-    /* CARGAR FRASE */
     async function cargarFrase() {
         const fraseBox = document.getElementById("fraseBox");
         const refOrden = ref(db, "globalOrder");
@@ -143,25 +151,31 @@
 
         const frase = frases[index];
 
-        // Resetear animación
         fraseBox.style.animation = "none";
         void fraseBox.offsetWidth;
         fraseBox.style.animation = "aparecer 0.7s ease-out";
 
         fraseBox.textContent = frase;
-
         hablar(frase);
 
         index = (index + 1) % frases.length;
         set(refOrden, index);
     }
 
-    window.onload = cargarFrase;
+    window.onload = () => {
+        document.getElementById("btnSonido").onclick = () => {
+            sonidoActivo = true;
+            document.getElementById("btnSonido").style.display = "none";
+            cargarFrase();
+        };
+    };
 </script>
-
 </head>
+
 <body>
     <div id="fondo"></div>
     <div id="fraseBox">Cargando…</div>
+
+    <button id="btnSonido">🔊 Activar sonido</button>
 </body>
 </html>
