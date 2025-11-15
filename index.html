@@ -1,1 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>UNDETALLIS — Mensajes Secuenciales</title>
+    
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-3GFTY2SWSM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-3GFTY2SWSM');
+</script>
+
+<!-- ==== ESTILOS ==== -->
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        height: 100vh;
+        width: 100vw;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: black;
+        font-family: "Arial", sans-serif;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    /* Fondo con wiggle */
+    #fondo {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 110%;
+        width: 110%;
+        background-image: url('assets/fondo2.jpg');
+        background-size: cover;
+        background-position: center;
+        animation: wiggle 1s infinite ease-in-out alternate;
+        filter: blur(2px);
+        z-index: -1;
+    }
+
+    @keyframes wiggle {
+        0%   { transform: translate(-1.5px, -1.5px) scale(1.015); }
+        25%  { transform: translate(1.5px, -1px) scale(1.01); }
+        50%  { transform: translate(-1px, 1.5px) scale(1.015); }
+        75%  { transform: translate(1px, 1px) scale(1.01); }
+        100% { transform: translate(-1.5px, 1px) scale(1.015); }
+    }
+
+    /* Animación suave estilo wiggle pero muy pequeña para el texto */
+    @keyframes suaveTexto {
+        0%   { transform: translate(-1px, -1px); }
+        25%  { transform: translate(1px, -0.5px); }
+        50%  { transform: translate(-0.5px, 1px); }
+        75%  { transform: translate(0.5px, 0.5px); }
+        100% { transform: translate(-1px, 0.5px); }
+    }
+
+    #fraseBox {
+        max-width: 88%;
+        padding: 25px 35px;
+        background: white;
+        color: black;
+        font-size: 30px;
+        font-weight: bold;
+        text-align: center;
+        border-radius: 18px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.3), 0 0 40px rgba(0,0,0,0.2);
+        position: relative;
+
+        /* Animación suave del texto */
+        animation: suaveTexto 1.6s ease-in-out infinite alternate;
+    }
+
+    /* Ajuste para pantallas pequeñas */
+    @media (max-width: 600px) {
+        #fraseBox {
+            font-size: 22px;
+            padding: 18px 24px;
+        }
+    }
+</style>
+
+<!-- ==== FIREBASE ==== -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCJ8sSO65rTjF04Dl7VMEuhrLj_Z9yAICs",
+      authDomain: "undetallis.firebaseapp.com",
+      databaseURL: "https://undetallis-default-rtdb.firebaseio.com",
+      projectId: "undetallis",
+      storageBucket: "undetallis.firebasestorage.app",
+      messagingSenderId: "60709183880",
+      appId: "1:60709183880:web:c7751f216ca7f5ad381a3d",
+      measurementId: "G-5ZQY4JZBGX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    /* ===== TUS 120 FRASES ===== */
+    const frases = [
+        /* (todo tu arreglo original de 120 frases va aquí exacto) */
+"¿Quién fue tu último crush?",
+"¿Qué es lo primero que notas en alguien?",
+"¿Cuál ha sido tu mayor metida de pata?",
+"¿Qué es algo que te da pena admitir?",
+"¿Qué es lo más loco que has hecho por amor?",
+"¿Qué es algo que nunca le has contado a nadie?"
+    ];
+
+    async function cargarFrase() {
+        const orderRef = ref(db, "globalOrder");
+
+        const snapshot = await get(orderRef);
+        let index = snapshot.exists() ? snapshot.val() : 0;
+
+        const frase = frases[index];
+        document.getElementById("fraseBox").innerText = frase;
+
+        index = (index + 1) % frases.length;
+        set(orderRef, index);
+    }
+
+    window.onload = cargarFrase;
+</script>
+</head>
+
+<body>
+    <div id="fondo"></div>
+    <div id="fraseBox">Cargando...</div>
+</body>
+</html>
 
